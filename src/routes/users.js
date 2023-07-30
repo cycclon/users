@@ -43,8 +43,13 @@ router.get('/:id', getUser, async (req, res)=>{
   res.json(res.user)
 })
 
+// GET SINGLE USER BY USERNAME
+router.get('/username/:username', getUserByName, async (req, res)=>{
+  res.json(res.user)
+})
+
 // VALIDATE PASSWORD
-router.post('/validatepwd/:id', getUser, async (req, res)=>{
+router.post('/validatepwd/:username', getUserByName, async (req, res)=>{
   const result = await comparePassword(req.body.password, res.user.password)
   res.status(201).json({ validated: result })
 })
@@ -101,6 +106,25 @@ router.post('/changepwd/:id', getUser, async (req, res) => {
     return res.status(201).json({ message: 'Current password is incorrect' })
   }
 })
+
+// MIDDLEWARE TO GET A SINGLE USER BY USERNAME
+async function getUserByName(req, res, next) {  
+
+  let user
+
+  try {
+    
+    user = await User.findOne({username: req.params.username})
+    if(user == null){
+      return res.status(404).json({ message: 'Cannot find user'})
+    }
+  } catch (error) {
+    res.status(500).json({message: error.message})
+  }
+
+  res.user = user
+  next()
+}
 
 // MIDDLEWARE TO GET A SINGLE USER
 async function getUser(req, res, next) {  
